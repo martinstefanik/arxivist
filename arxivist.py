@@ -4,6 +4,7 @@
 
 import os
 import re
+import unicodedata
 
 import arxiv
 import click
@@ -23,8 +24,15 @@ __version__ = "1.0.0"
     help="Directory to store the downloaded paper in. Defaults to the current "
     "working directory.",
 )
+@click.option(
+    "-u",
+    "--unicode",
+    "unicode_",
+    is_flag=True,
+    help="Do not convert Unicode characters in the file name to ASCII.",
+)
 @click.version_option(version=__version__, message="%(version)s")
-def main(resource, dir):
+def main(resource, dir, unicode_):
     """
     Download the paper from RESOURCE, which should be a link to an arXiv paper
     or its abstract or the arXiv ID of the paper, and name it according to a
@@ -34,7 +42,7 @@ def main(resource, dir):
         arxiv_id = extract_arxiv_id(resource)
     else:
         arxiv_id = resource
-    download_paper(arxiv_id, dir)
+    download_paper(arxiv_id, dir, unicode_)
 
 
 def is_arxiv_link(resource):
@@ -56,20 +64,24 @@ def extract_arxiv_id(link):
     return arxiv_id
 
 
-def download_paper(id, dir):
-    """
-    Download a paper from arXiv to a given directory.
-
-    Args:
-        id (str): arXiv ID of the paper.
-        dir (str or Pathlike): Directory to store the downloaded paper in.
-    """
+def download_paper(id, dir, unicode_):
+    """Download a paper from arXiv to a given directory."""
     try:
         paper = next(arxiv.Search(id_list=[id]).get())
         title = paper.title
         year_published = paper.published.year
         authors = [str(a).split(" ")[-1] for a in paper.authors]
         pdf_title = f"{title} - {', '.join(authors)} ({year_published}).pdf"
+
+        # Convert the PDF title to ASCII
+        if not unicode_:
+            pdf_title = (
+                unicodedata.normalize("NFKD", pdf_title)
+                .encode("ascii", "ignore")
+                .decode("ascii")
+            )
+
+        # Prompt to overwrite an existing file
         if os.path.exists(os.path.join(dir, pdf_title)):
             click.confirm(
                 text=f"File '{pdf_title}' exists in '{dir}'. Do you want to "
