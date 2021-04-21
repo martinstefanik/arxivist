@@ -56,9 +56,9 @@ def is_arxiv_link(resource):
 def extract_arxiv_id(link):
     """Extract arXiv ID from the given resource."""
     p = re.compile(r"http(?:s|)://arxiv.org/(?:abs/(.+\d)$|pdf/(.+\d)\.pdf$)")
-    match = p.fullmatch(link)
-    if match is not None:
-        arxiv_id = p.group(0) if p.group(0) is not None else p.group(1)
+    m = p.fullmatch(link)
+    if m is not None:
+        arxiv_id = m.group(1) if m.group(1) is not None else m.group(2)
     else:
         raise click.ClickException(f"Not a valid arXiv link: '{link}'.")
     return arxiv_id
