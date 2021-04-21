@@ -95,6 +95,8 @@ def download_paper(id, dir, unicode_):
     except arxiv.HTTPError as err:
         if err.status == 400:
             raise click.ClickException(f"Not a valid arXiv ID: '{id}'.")
+    except AttributeError:
+        raise click.ClickException(f"Not a valid arXiv ID: '{id}'.")
     except Exception:
         raise click.ClickException("Unknown error while downloading.")
 
