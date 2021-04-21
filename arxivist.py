@@ -78,7 +78,7 @@ def download_paper(id, dir, unicode_):
             pdf_title = (
                 unicodedata.normalize("NFKD", pdf_title)
                 .encode("ascii", "ignore")
-                .decode("ascii")
+                .decode("ascii")  # convert from bytes to string
             )
 
         # Prompt to overwrite an existing file
@@ -91,6 +91,7 @@ def download_paper(id, dir, unicode_):
                 abort=True,
             )
         paper.download_pdf(filename=pdf_title, dirpath=dir)
+        click.echo(f"'{pdf_title}' successfully downloaded to '{dir}'!")
     except arxiv.HTTPError as err:
         if err.status == 400:
             raise click.ClickException(f"Not a valid arXiv ID: '{id}'.")
